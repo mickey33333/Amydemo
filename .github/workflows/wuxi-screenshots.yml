@@ -1,8 +1,8 @@
 name: Wuxi company screenshots
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       - name: Capture Wuxi companies
         id: capture
         continue-on-error: true
-        run: python scripts/scrape_wuxi.py
+        run: python scripts/scrape_wuxi_v2.py
 
       - name: Upload result and diagnostics
         if: always()
