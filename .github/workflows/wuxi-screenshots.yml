@@ -1,0 +1,51 @@
+name: Wuxi company screenshots
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install browser and Chinese fonts
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: Capture Wuxi companies
+        id: capture
+        continue-on-error: true
+        run: python scripts/scrape_wuxi.py
+
+      - name: Upload result and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wuxi-company-screenshots
+          path: output/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Report capture failure
+        if: steps.capture.outcome != 'success'
+        run: |
+          echo "Crawler returned a non-zero exit code. Download the artifact for diagnostics."
+          exit 1
