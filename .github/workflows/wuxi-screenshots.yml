@@ -35,7 +35,27 @@ jobs:
       - name: Capture Wuxi companies
         id: capture
         continue-on-error: true
-        run: python scripts/scrape_wuxi_v2.py
+        env:
+          PW_TEST_SCREENSHOT_NO_FONTS_READY: "1"
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/scrape_wuxi_v2.py")
+          text = path.read_text(encoding="utf-8")
+          needle = '            click_region_option(page, "江苏省")'
+          insertion = (
+              '            click_region_option(page, "中国")\n'
+              '            page.wait_for_timeout(1500)\n'
+              + needle
+          )
+          if 'click_region_option(page, "中国")' not in text:
+              if needle not in text:
+                  raise SystemExit("Could not find Jiangsu selection line")
+              text = text.replace(needle, insertion, 1)
+              path.write_text(text, encoding="utf-8")
+          PY
+          python scripts/scrape_wuxi_v2.py
 
       - name: Upload result and diagnostics
         if: always()
