@@ -26,13 +26,14 @@ try:
         if selector == "div.option-label" and pattern == "^江苏省$":
             result = _original_locator(self, selector, *args, **kwargs)
             try:
-                if result.count() == 0:
+                has_visible = any(result.nth(i).is_visible() for i in range(result.count()))
+                if not has_visible:
                     china = _original_locator(self, "div.option-label", has_text=re.compile(r"^中国$"))
                     for index in range(china.count()):
                         item = china.nth(index)
                         if item.is_visible():
                             item.click(timeout=8000)
-                            self.wait_for_timeout(1200)
+                            self.wait_for_timeout(1500)
                             break
                     result = _original_locator(self, selector, *args, **kwargs)
             except Exception:
